@@ -595,6 +595,7 @@ class App(object):
             if re.match(r'gbx-.+-targets', vname):
                 printlog(vname)
 
+
 # TODO: move this inside the genbox or labels
 def context():
     contextdir = os.path.expanduser('~/.config')

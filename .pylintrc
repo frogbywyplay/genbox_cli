@@ -1,4 +1,4 @@
 [MESSAGES CONTROL]
-disable=invalid-name,missing-docstring,unused-argument,too-few-public-methods,bad-continuation
+disable=invalid-name,missing-docstring,unused-argument,too-few-public-methods,bad-continuation,fixme
 [FORMAT]
 max-line-length=120
