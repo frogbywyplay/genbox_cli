@@ -29,7 +29,7 @@ The container will have:
   - network=host
   - seccomp profile adapted for the genbox
 ''',
-    version='0.8',
+    version='0.9',
     packages=find_packages(),
     author='PMO',
     author_email='pmo@wyplay.com',

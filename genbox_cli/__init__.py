@@ -42,7 +42,7 @@ from dockerpty.pty import PseudoTerminal, ExecOperation  # pylint: disable=no-na
 
 from genbox_cli import docker_catalog
 
-__version__ = '0.8'
+__version__ = '0.9'
 
 # logging facility
 
@@ -226,7 +226,7 @@ class GenboxContainer(object):
         return self
 
     def attach(self, usermode):
-        self.exec_run('bash', usermode)
+        self.exec_run(['bash', '-l'], usermode)
 
     def exec_run(self, cmd, usermode=None, **kwargs):
         if usermode:
@@ -245,42 +245,6 @@ class GenboxContainer(object):
         operation = ExecOperation(self.cli.api, exec_id, interactive=True)
         pty = PseudoTerminal(self.cli.api, operation)
         pty.start()
-
-    # setup
-    @staticmethod
-    def _gitconfig(email, name, path=os.path.expanduser('~/.gitconfig')):
-        try:
-            return open(path, 'rb')
-        except FileNotFoundError:
-            return io.BytesIO(
-                '''\
-[user]
-    email = {email}
-    name = {name}
-'''.format(email=email, name=name).encode('utf-8')
-            )
-
-    @staticmethod
-    def _hgrc(email, name, path=os.path.expanduser('~/.hgrc')):
-        try:
-            return open(path, 'rb')
-        except FileNotFoundError:
-            return io.BytesIO('''\
-[ui]
-username = {name} <{email}>
-'''.format(email=email, name=name).encode('utf-8'))
-
-    @staticmethod
-    def _ssh_config(username, path=os.path.expanduser('~/.ssh/config')):
-        try:
-            return open(path, 'rb')
-        except FileNotFoundError:
-            return io.BytesIO(
-                '''\
-Host packages.wyplay.com
-    User {username}
-'''.format(username=username).encode('utf-8')
-            )
 
     def setup(self, email, name, username, force=False):
         ctx = context()
@@ -445,6 +409,12 @@ class GenboxContainerLow(object):
             return False
         except docker.errors.NotFound:
             pass
+        ctx = context()
+        try:
+            del ctx.setdefault('genbox', dict())[cname]
+        except KeyError:
+            pass
+        update_context(ctx)
 
         if pull(self.cli, iname) is None:
             return None
@@ -625,7 +595,7 @@ class App(object):
             if re.match(r'gbx-.+-targets', vname):
                 printlog(vname)
 
-
+# TODO: move this inside the genbox or labels
 def context():
     contextdir = os.path.expanduser('~/.config')
     os.makedirs(contextdir, exist_ok=True)
@@ -715,11 +685,11 @@ class MergeConfig(object):
     def cmd(self):
         cmd = self.args.cmd
         if not cmd:
-            return 'bash'
+            return ['bash', '-l']
         if cmd[0] == '--':
             cmd.pop(0)
         if not cmd:
-            return 'bash'
+            return ['bash', '-l']
         return cmd
 
     def cascade(self, section, name):
