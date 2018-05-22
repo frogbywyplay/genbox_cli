@@ -480,11 +480,13 @@ class GenboxContainerLow(object):
 def split_image(image):
     toks = image.split('/', 1)
     if '.' not in toks[0]:
-        return 'registry-1.docker.io', image
+        return None, image
     return toks[0], toks[1]
 
 
 def get_registry(url):
+    if not url:
+        return docker_catalog.HubApi()
     return docker_catalog.Reg(url, creds_from_config(url))
 
 
@@ -556,7 +558,7 @@ class App(object):
         url, rrepo = split_image(cfg.image)
         reg = get_registry(url)
         try:
-            for tag in sorted(s for s in reg.ls() if s.startswith('{}:'.format(rrepo))):
+            for tag in sorted(s for s in reg.ls(rrepo)):
                 printlog(tag)
         except requests.exceptions.HTTPError as e:
             if e.response and e.response.status_code:

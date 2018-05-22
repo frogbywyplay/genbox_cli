@@ -11,8 +11,7 @@ style:
     - pip install -c requirements-dev.txt unify yapf
   script:
     - unify -r -c setup.py genbox_cli
-    - >-
-      [ x"$(yapf -r -d setup.py genbox_cli)" == x"" ]
+    - yapf -r -d setup.py genbox_cli
 
 pyflakes:
   stage: static
