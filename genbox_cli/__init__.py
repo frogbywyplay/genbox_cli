@@ -655,10 +655,10 @@ class MergeConfig(object):
             return getpass.getuser()
 
     @property
-    def volumes(self):
+    def volume(self):
         return set(itertools.chain(
             self.cp.get('container', 'volumes', fallback='').split(' '),
-            self.args.volumes,
+            self.args.volume,
         ))
 
     @property
