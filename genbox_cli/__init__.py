@@ -86,8 +86,11 @@ def printlog(*args, **kwargs):
 def pull(cli, iname):
     try:
         img = cli.images.get(iname)
-        logging.info('Image %s is already pulled', iname)
-        return img
+        if ":" not in img or img.endswith(":latest"):
+            pass
+        else:
+            logging.info('Image %s is already pulled', iname)
+            return img
     except docker.errors.NotFound:
         pass
 
