@@ -659,10 +659,12 @@ class MergeConfig(object):
 
     @property
     def volume(self):
-        return set(itertools.chain(
-            (v for v in self.cp.get('container', 'volumes', fallback='').split(' ') if v),
-            self.args.volume,
-        ))
+        return set(
+            itertools.chain(
+                (v for v in self.cp.get('container', 'volumes', fallback='').split(' ') if v),
+                self.args.volume,
+            )
+        )
 
     @property
     def clean_volumes(self):
