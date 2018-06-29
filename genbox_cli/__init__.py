@@ -86,7 +86,7 @@ def printlog(*args, **kwargs):
 def pull(cli, iname):
     try:
         img = cli.images.get(iname)
-        if ":" not in img or img.endswith(":latest"):
+        if ':' not in img or img.endswith(':latest'):
             pass
         else:
             logging.info('Image %s is already pulled', iname)
