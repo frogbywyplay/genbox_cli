@@ -92,13 +92,11 @@ def pull(cli, iname):
         version = iname.split(':')[1] if ':' in iname else 'latest'
         if version == 'latest':
             printlog('Version is latest: Pull needed.')
-            pass
         else:
             printlog('Version is {}. No pull needed.'.format(iname))
             return img
     except docker.errors.ImageNotFound:
         printlog('no. Pull needed.')
-        pass
 
     printlog('Pulling {}'.format(iname))
     try:
