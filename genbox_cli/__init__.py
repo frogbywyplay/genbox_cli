@@ -42,7 +42,7 @@ from dockerpty.pty import PseudoTerminal, ExecOperation  # pylint: disable=no-na
 
 from genbox_cli import docker_catalog
 
-__version__ = '0.10'
+__version__ = '0.11'
 
 # logging facility
 
@@ -84,14 +84,20 @@ def printlog(*args, **kwargs):
 
 
 def pull(cli, iname):
+    printlog('Checking whether the image is already present locally... ', end='')
     try:
         img = cli.images.get(iname)
-        if ':' not in img or img.endswith(':latest'):
+        printlog('yes.')
+        logging.info('Image %s is present.', iname)
+        version = iname.split(':')[1] if ':' in iname else 'latest'
+        if version == 'latest':
+            printlog('Version is latest: Pull needed.')
             pass
         else:
-            logging.info('Image %s is already pulled', iname)
+            printlog('Version is {}. No pull needed.'.format(iname))
             return img
-    except docker.errors.NotFound:
+    except docker.errors.ImageNotFound:
+        printlog('no. Pull needed.')
         pass
 
     printlog('Pulling {}'.format(iname))
