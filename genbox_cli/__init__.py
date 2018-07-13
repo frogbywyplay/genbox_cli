@@ -297,7 +297,7 @@ class GenboxContainer(object):
                 break
 
         logging.info('adding user %s with uid %s', username, uid)
-        logging.debug(self.cont.exec_run(['useradd', username, '-G', 'wheel', '-o', '-u', str(uid)]))
+        logging.debug(self.cont.exec_run(['useradd', username, '-G', 'wheel,portage', '-o', '-u', str(uid)]))
 
         return self
 
