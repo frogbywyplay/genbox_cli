@@ -465,6 +465,7 @@ class GenboxContainerLow(object):
             iname,
             command='tail -f /dev/null',
             name=cname,
+            hostname=self.name,
             volumes=dvolumes,
             restart_policy=dict(Name='always'),
             privileged=privileged,
