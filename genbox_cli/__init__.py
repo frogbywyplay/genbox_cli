@@ -42,7 +42,7 @@ from dockerpty.pty import PseudoTerminal, ExecOperation  # pylint: disable=no-na
 
 from genbox_cli import docker_catalog
 
-__version__ = '0.11'
+__version__ = '0.12'
 
 # logging facility
 
