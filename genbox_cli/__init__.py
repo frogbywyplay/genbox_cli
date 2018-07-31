@@ -42,7 +42,7 @@ from dockerpty.pty import PseudoTerminal, ExecOperation  # pylint: disable=no-na
 
 from genbox_cli import docker_catalog
 
-__version__ = '0.12'
+__version__ = '0.13'
 
 # logging facility
 
@@ -199,7 +199,7 @@ class GenboxContainer(object):
                 yield m['Name']
 
     def usr_targets(self):
-        return next(self._mount('/usr/targets'))
+        return next(self._mount('/usr/targets'), '')
 
     def usr_portage(self):
         return next(self._mount('/usr/portage'))
