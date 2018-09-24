@@ -144,7 +144,7 @@ def split_path_mapping(volume_config):
         else:
             mode = 'rw'
 
-        return container_path, dict(bind=host, mode=mode)
+        return host, dict(bind=container_path, mode=mode)
     else:
         return volume_config, None
 
