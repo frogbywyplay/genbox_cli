@@ -18,6 +18,7 @@
 
 import argparse
 import configparser
+import copy
 import functools
 import getpass
 import glob
@@ -42,7 +43,7 @@ from dockerpty.pty import PseudoTerminal, ExecOperation  # pylint: disable=no-na
 
 from genbox_cli import docker_catalog
 
-__version__ = '0.13'
+__version__ = '0.14'
 
 # logging facility
 
@@ -53,6 +54,28 @@ VLEVELS = {
 }
 
 
+class ColoredConsoleHandler(logging.StreamHandler):
+    def emit(self, record):
+        # Need to make a actual copy of the record
+        # to prevent altering the message for other loggers
+        myrecord = copy.copy(record)
+        levelno = myrecord.levelno
+        if levelno >= 50:  # CRITICAL / FATAL
+            color = '\x1b[31m'  # red
+        elif levelno >= 40:  # ERROR
+            color = '\x1b[31m'  # red
+        elif levelno >= 30:  # WARNING
+            color = '\x1b[33m'  # yellow
+        elif levelno >= 20:  # INFO
+            color = '\x1b[32m'  # green
+        elif levelno >= 10:  # DEBUG
+            color = '\x1b[35m'  # pink
+        else:  # NOTSET and anything else
+            color = '\x1b[0m'  # normal
+        myrecord.msg = color + str(myrecord.msg) + '\x1b[0m'  # normal
+        logging.StreamHandler.emit(self, myrecord)
+
+
 def init_logging(vlevel):
     """ init logger with 2 handlers:
         one file handler in /var/log/genbox/genbox-cli.log with DEBUG level
@@ -61,7 +84,7 @@ def init_logging(vlevel):
     root = logging.getLogger()
     root.setLevel(VLEVELS.get(vlevel, logging.DEBUG))
 
-    shdlr = logging.StreamHandler()
+    shdlr = ColoredConsoleHandler()
     shdlr.setFormatter(logging.Formatter('%(message)s'))
     root.addHandler(shdlr)
 
@@ -408,7 +431,7 @@ class GenboxContainerLow(object):
         except docker.errors.NotFound:
             pass
 
-    def create_genbox(self, iname, vname, tname, privileged, volumes, user, usermode):  # pylint: disable=too-many-arguments
+    def create_genbox(self, iname, vname, tname, privileged, volumes, user, usermode):  # pylint: disable=too-many-arguments, too-many-locals
         cname = 'gbx-{}-genbox'.format(self.name)
         try:
             self.cli.containers.get(cname)
@@ -437,6 +460,14 @@ class GenboxContainerLow(object):
                 'mode': 'rw'
             },
         }
+        if os.getenv('SSH_AUTH_SOCK'):
+            ssh_sock_dir = os.path.dirname(os.getenv('SSH_AUTH_SOCK'))
+            if not ssh_sock_dir.startswith(
+                '/tmp'
+            ):  # /tmp is already mount/bind so do not rebind one of its subdirectory
+                dvolumes[ssh_sock_dir] = {'bind': ssh_sock_dir, 'mode': 'rw'}
+        else:
+            logging.warning('No SSH_AUTH_SOCK defined => You will have troubles to correctly setup the genbox.')
         if tname:
             dvolumes[tname] = {'bind': '/usr/targets', 'mode': 'rw'}
         dvolumes.update(dict_from_path_mappings(volumes))
