@@ -27,6 +27,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -801,9 +802,12 @@ $ sudo touch /var/log/genbox-cli.{user}.log && sudo chown {user}:{user} /var/log
             cli.version()
         except requests.exceptions.ConnectionError:
             logging.error('Dockerd in not running')
-            logging.error('Please install docker and start it:')
-            logging.error('You can find the install documentation here : https://docs.docker.com/engine/installation/')
-            logging.error('Then start it:')
+            if not shutil.which('dockerd'):
+                logging.error('Please install docker and start it:')
+                logging.error('You can find the install documentation here: https://docs.docker.com/install/')
+                logging.error('Then start it:')
+            else:
+                logging.error('Start the Docker daemon:')
             logging.error('$ sudo systemctl enable docker')
             logging.error('$ sudo systemctl start docker')
             return True
