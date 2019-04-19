@@ -1,4 +1,4 @@
-# Copyright (C) 2018 Wyplay, All Rights Reserved.
+# Copyright (C) 2018-2019 Wyplay, All Rights Reserved.
 # This file is part of xbuilder.
 #
 # xbuilder is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@ import configparser
 import copy
 import functools
 import getpass
-import glob
 import io
 import itertools
 import json
@@ -43,7 +42,7 @@ from dockerpty.pty import PseudoTerminal, ExecOperation  # pylint: disable=no-na
 
 from genbox_cli import docker_catalog
 
-__version__ = '0.14'
+__version__ = '0.15'
 
 # logging facility
 
@@ -786,7 +785,7 @@ $ sudo touch /var/log/genbox-cli.{user}.log && sudo chown {user}:{user} /var/log
 
     def check(self, cfg):
         for chk in [
-            self.check_dockerd_is_running,
+            functools.partial(self.check_dockerd_is_running, cfg),
             self.check_docker_sock,
             functools.partial(self.check_cfg, cfg),
         ]:
@@ -795,19 +794,12 @@ $ sudo touch /var/log/genbox-cli.{user}.log && sudo chown {user}:{user} /var/log
         return None
 
     @staticmethod
-    def check_dockerd_is_running():
-        def search_dockerd():
-            for fname in glob.glob('/proc/[0-9]*'):
-                with open(os.path.join(fname, 'cmdline')) as fl:
-                    c = fl.read()
-                    if c:
-                        d = re.split(r'\0| ', c)[0]
-                        if 'dockerd' in d:
-                            yield os.path.basename(fname)
+    def check_dockerd_is_running(cfg):
+        cli = cfg.cli
 
         try:
-            next(search_dockerd())
-        except StopIteration:
+            cli.version()
+        except requests.exceptions.ConnectionError:
             logging.error('Dockerd in not running')
             logging.error('Please install docker and start it:')
             logging.error('You can find the install documentation here : https://docs.docker.com/engine/installation/')

@@ -1,4 +1,4 @@
-# Copyright (C) 2018 Wyplay, All Rights Reserved.
+# Copyright (C) 2018-2019 Wyplay, All Rights Reserved.
 # This file is part of xbuilder.
 #
 # xbuilder is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ The container will have:
   - network=host
   - seccomp profile adapted for the genbox
 ''',
-    version='0.14',
+    version='0.15',
     packages=find_packages(),
     author='PMO',
     author_email='pmo@wyplay.com',
