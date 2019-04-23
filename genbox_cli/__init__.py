@@ -1,12 +1,12 @@
 # Copyright (C) 2018-2019 Wyplay, All Rights Reserved.
-# This file is part of xbuilder.
+# This file is part of genbox-cli.
 #
-# xbuilder is free software: you can redistribute it and/or modify
+# genbox-cli is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
-# xbuilder is distributed in the hope that it will be useful,
+# genbox-cli is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -43,7 +43,7 @@ from dockerpty.pty import PseudoTerminal, ExecOperation  # pylint: disable=no-na
 
 from genbox_cli import docker_catalog
 
-__version__ = '0.15'
+__version__ = '0.16'
 
 # logging facility
 
@@ -168,8 +168,7 @@ def split_path_mapping(volume_config):
             mode = 'rw'
 
         return host, dict(bind=container_path, mode=mode)
-    else:
-        return volume_config, None
+    return volume_config, None
 
 
 def dict_from_path_mappings(path_mappings):
@@ -178,7 +177,7 @@ def dict_from_path_mappings(path_mappings):
     return dict(split_path_mapping(v) for v in path_mappings)
 
 
-class PwdFile(object):
+class PwdFile():
     def __init__(self, content):
         self.pwd = list(self.parse(content))
 
@@ -203,7 +202,7 @@ class PwdFile(object):
             raise KeyError(name)
 
 
-class GenboxContainer(object):
+class GenboxContainer():
     def __init__(self, cli, name):
         self.cli = cli
         self.cont = cli.containers.get('gbx-{}-genbox'.format(name))
@@ -373,7 +372,7 @@ class GenboxContainer(object):
                 logging.error('Fail to remove volume %s: %s', v, e.explanation)
 
 
-class GenboxContainerLow(object):
+class GenboxContainerLow():
     """
         low level genbox creation helpers (volumes & container)
     """
@@ -566,7 +565,7 @@ def get_registry(url):
     return docker_catalog.Reg(url, creds_from_config(url))
 
 
-class App(object):
+class App():
     """
     implements command-line commands: enter, ls, ...
     """
@@ -597,8 +596,8 @@ class App(object):
         else:
             force = False
         gbx = (
-            GenboxContainer(cli, name).start().setup(cfg.user_name, cfg.user_email, cfg.user_username, force)
-            .setup_usermode(cfg.user_mode, cfg.user_username)
+            GenboxContainer(cli, name).start().setup(cfg.user_name, cfg.user_email, cfg.user_username,
+                                                     force).setup_usermode(cfg.user_mode, cfg.user_username)
         )
         if not cfg.no_attach:
             gbx.attach(cfg.user_mode)
@@ -667,7 +666,7 @@ class App(object):
             if re.match(r'gbx-.+-portage', vname):
                 printlog(vname)
         printlog()
-        printlog('Orphase targets volumes')
+        printlog('Orphaned targets volumes')
         for volume in cfg.cli.volumes.list():
             vname = volume.name
             if re.match(r'gbx-.+-targets', vname):
@@ -694,7 +693,7 @@ def update_context(new_context):
         return json.dump(new_context, fl)
 
 
-class MergeConfig(object):
+class MergeConfig():
     """
         mix config options from cli and ~/.genboxrc
     """
@@ -797,7 +796,7 @@ class MergeConfig(object):
         return getattr(self.args, name)
 
 
-class SanityCheck(object):
+class SanityCheck():
     @staticmethod
     def pre_check():
         user = getpass.getuser()

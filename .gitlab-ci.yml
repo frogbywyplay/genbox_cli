@@ -1,12 +1,14 @@
----
+.python-template: &python
+  stage: static
+  tags:
+    - bash
+  image: $WY_REGISTRY/library/python:3.6.8-alpine-3.9
+
 stages:
   - static
 
 style:
-  stage: static
-  tags:
-    - bash
-  image: $WY_REGISTRY/library/python:3.6-alpine3.7
+  <<: *python
   before_script:
     - pip install -c requirements-dev.txt unify yapf
   script:
@@ -14,22 +16,18 @@ style:
     - yapf -r -d setup.py genbox_cli
 
 pyflakes:
-  stage: static
-  tags:
-    - bash
-  image: $WY_REGISTRY/library/python:3.6-alpine3.7
+  <<: *python
   before_script:
     - pip install -c requirements-dev.txt pyflakes
   script:
     - pyflakes setup.py genbox_cli
 
 pylint:
-  stage: static
-  tags:
-    - bash
-  image: $WY_REGISTRY/library/python:3.6-alpine3.7
+  <<: *python
   before_script:
+    - apk add gcc musl-dev
     - pip install -r requirements.txt
     - pip install -c requirements-dev.txt pylint
   script:
     - pylint setup.py genbox_cli
+
