@@ -1,11 +1,14 @@
 .python-template: &python
   stage: static
+  except:
+    - tags
   tags:
     - bash
   image: $WY_REGISTRY/library/python:3.6.8-alpine-3.9
 
 stages:
   - static
+  - build
 
 style:
   <<: *python
@@ -31,3 +34,26 @@ pylint:
   script:
     - pylint setup.py genbox_cli
 
+create deb package:
+  stage: build
+  only:
+    - tags
+  tags:
+    - docker-build
+  image: ubuntu:18.10
+  variables:
+    LC_ALL: C.UTF-8
+    LANG: C.UTF-8
+  before_script:
+    - apt update
+    - apt upgrade -y
+    - apt install -y python3-setuptools python-all python3-all python3-pip debhelper
+    - pip3 install pipenv
+  script:
+    - pipenv install --dev
+    - make deb
+  artifacts:
+    name: ${CI_JOB_STAGE}-${CI_PROJECT_NAME}-${CI_COMMIT_TAG}
+    paths:
+      - deb_dist/
+      - genbox-cli-${CI_COMMIT_TAG}.tar.gz
