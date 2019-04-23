@@ -227,6 +227,12 @@ class GenboxContainer(object):
     def usr_portage(self):
         return next(self._mount('/usr/portage'))
 
+    @property
+    def volumes(self):
+        for mount in self._mounts:
+            if mount['Type'] == 'volume':
+                yield mount['Name']
+
     def put_files(self, files):
         """
             files is a dict src => dest
@@ -326,14 +332,45 @@ class GenboxContainer(object):
 
     # cleanup
     def cleanup(self, volumes, force):
-        if not force:
-            printlog('This will destroy the container and all associated volumes')
-            resp = prompt('Are you sure [Yn] ?').strip().lower()
+        def confirm_action(message='Are you sure [y/N] ?'):
+            resp = prompt(message).strip().lower()
             if not resp or resp[0] != 'y':
-                printlog('Cancelled.')
+                printlog('Skip deletion.')
+                return False
+            return True
+
+        rm_volumes_str = ' and all associated volumes.' if volumes else '.'
+        if not force:
+            printlog('This operation will destroy the container%s' % rm_volumes_str)
+            if not confirm_action():
                 return
-        printlog("Removing genbox and it's volumes")
-        self.cont.remove(v=volumes, force=True)
+
+        printlog('Removing genbox container%s' % rm_volumes_str)
+        try:
+            self.cont.stop()
+            self.cont.remove(v=volumes)
+        except docker.errors.APIError as e:
+            logging.error('Fail to remove %s: %s', self.cont.name, e.explanation)
+
+        if not volumes:
+            return
+
+        for v in self.volumes:
+            used_by = []
+            for c in self.cli.containers.list(all=True):
+                for mount in c.attrs['Mounts']:
+                    if mount['Type'] == 'volume' and mount['Name'] == v:
+                        used_by.append('%s (%s)' % (c.name, c.status))
+            if used_by:
+                logging.warning('Volume %s is used by %s', v, ', '.join(used_by))
+                logging.warning('Its deletion will break these containers.')
+                if not confirm_action('Delete it anyway [y/N] ?'):
+                    continue
+
+            try:
+                self.cli.volumes.get(v).remove(force=True)
+            except docker.errors.APIError as e:
+                logging.error('Fail to remove volume %s: %s', v, e.explanation)
 
 
 class GenboxContainerLow(object):
