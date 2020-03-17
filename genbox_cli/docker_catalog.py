@@ -28,7 +28,7 @@ class Reg:
         self.s.auth = creds
 
     def _url(self, path):
-        return '{}/v2/{}'.format(self.base_url, path)
+        return '{}/api/{}'.format(self.base_url, path)
 
     def get(self, path, **kwargs):
         reply = self.s.get(self._url(path), **kwargs)
@@ -36,13 +36,12 @@ class Reg:
         return reply
 
     def ls(self, repo):
-        tags = self.get('{}/tags/list'.format(repo)).json()['tags']
+        tags = self.get('repositories/{}/tags'.format(repo)).json()
         if tags:
             for tag in tags:
-                yield '{}:{}'.format(repo, tag)
+                yield '{}:{}'.format(repo, tag['name'])
         else:
             yield repo
-
 
 class HubApi:
     def __init__(self):
